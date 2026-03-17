@@ -7,10 +7,11 @@ import { PostsModule } from './modules/posts/posts.module';
 import { PostCommentsModule } from './modules/post-comments/post-comments.module';
 import { ReactionsModule } from './modules/reactions/reactions.module';
 import { ReactionCountModule } from './modules/reaction-count/reaction-count.module';
+import { KafkaModule } from './kafka/kafka.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ envFilePath: '.env', isGlobal: true }), // Load .env
+    ConfigModule.forRoot({ isGlobal: true }), // Load .env
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.DB_HOST,
@@ -25,6 +26,7 @@ import { ReactionCountModule } from './modules/reaction-count/reaction-count.mod
     PostCommentsModule,
     ReactionsModule,
     ReactionCountModule,
+    KafkaModule
   ],
   controllers: [AppController],
   providers: [AppService],

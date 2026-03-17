@@ -9,6 +9,9 @@ export class Post extends BaseEntities {
     @Column('uuid')
     employeeId: string;
 
+    @Column({ nullable: true})
+    employeeFullName: string;
+
     @Column()
     content: string;
 
