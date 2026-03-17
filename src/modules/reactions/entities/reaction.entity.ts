@@ -1,27 +1,30 @@
-import { BaseEntities } from "src/common/entities/base.entity";
-import { PostComment } from "src/modules/post-comments/entities/post-comment.entity";
-import { Post } from "src/modules/posts/entities/post.entity";
-import { Column, Entity, JoinColumn, ManyToOne } from "typeorm";
+import { BaseEntities } from 'src/common/entities/base.entity';
+import { PostComment } from 'src/modules/post-comments/entities/post-comment.entity';
+import { Post } from 'src/modules/posts/entities/post.entity';
+import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 
 @Entity('Reactions')
 export class Reaction extends BaseEntities {
-    @Column('uuid')
-    employeeId: string;
+  @Column('uuid')
+  employeeId: string;
 
-    @Column()
-    reactionType: string;
+  @Column({ nullable: true})
+  employeeFullName: string;
 
-    @Column({ nullable: true})
-    postId: string;
+  @Column()
+  reactionType: string;
 
-    @ManyToOne(() => Post, (post) => post.reactions)
-    @JoinColumn({ name: 'postId'})
-    posts: Post
+  @Column({ nullable: true })
+  postId: string;
 
-    @Column({ nullable: true})
-    postCommentId: string;
+  @ManyToOne(() => Post, (post) => post.reactions)
+  @JoinColumn({ name: 'postId' })
+  posts: Post;
 
-    @ManyToOne(() => PostComment, (postComment) => postComment.reactions)
-    @JoinColumn({ name: 'postCommentId'})
-    postComments: PostComment
+  @Column({ nullable: true })
+  postCommentId: string;
+
+  @ManyToOne(() => PostComment, (postComment) => postComment.reactions)
+  @JoinColumn({ name: 'postCommentId' })
+  postComments: PostComment;
 }
