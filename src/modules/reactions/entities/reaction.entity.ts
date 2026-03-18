@@ -1,9 +1,11 @@
 import { BaseEntities } from 'src/common/entities/base.entity';
 import { PostComment } from 'src/modules/post-comments/entities/post-comment.entity';
 import { Post } from 'src/modules/posts/entities/post.entity';
-import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, Unique } from 'typeorm';
 
 @Entity('Reactions')
+@Unique('UQ_USER_POST_REACTION', ['employeeId', 'postId'])
+@Unique('UQ_USER_COMMENT_REACTION', ['employeeId', 'postCommentId'])
 export class Reaction extends BaseEntities {
   @Column('uuid')
   employeeId: string;
