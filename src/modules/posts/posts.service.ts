@@ -4,53 +4,24 @@ import { UpdatePostDto } from './dto/update-post.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Post } from './entities/post.entity';
 import { Repository } from 'typeorm';
-import { KAFKA_TOPICS } from 'src/kafka/config/kafka-topics.constant';
-import { ProducerService } from 'src/kafka/producers/producer.service';
-import { v4 as uuidv4 } from 'uuid';
-
 @Injectable()
 export class PostsService {
   constructor(
     @InjectRepository(Post)
     private readonly repo: Repository<Post>,
-    private readonly producerService: ProducerService,
   ) {}
 
-  // async create(createPostDto: CreatePostDto, accessToken: string): Promise<Post> {
-  //   const post = this.repo.create(createPostDto);
-
-  //   // pushlish event to hrm-base service get user action
-  //  await this.producerService.produce(KAFKA_TOPICS.USER_ACTION_REQUESTED, {
-  //     value: JSON.stringify({
-  //       token: accessToken,
-  //       action: 'CREATE_POST',
-  //       payload: createPostDto
-  //     }),
-  //   });
-
-  //   return post;
-  // }
-
-  async create(
+  async createPostSync(
     createPostDto: CreatePostDto,
-    accessToken: string,
+    employeeInfo: any,
   ): Promise<Post> {
-    const post = this.repo.create(createPostDto);
-
-    post.id = uuidv4();
-
-    await this.producerService.produce(KAFKA_TOPICS.USER_ACTION_REQUESTED, {
-      key: post.id,
-      value: JSON.stringify({
-        token: accessToken,
-        action: 'CREATE_POST',
-        payload: {
-          ...createPostDto,
-          id: post.id,
-        },
-      }),
+    const post = this.repo.create({
+      ...createPostDto,
+      employeeId: employeeInfo.employeeId,
+      employeeFullName: employeeInfo.fullName,
     });
 
+    await this.repo.save(post);
     return post;
   }
 

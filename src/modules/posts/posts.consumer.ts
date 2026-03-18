@@ -14,7 +14,7 @@ export class PostsConsumer {
     private readonly dlqService: DlqService,
   ) {}
 
-  @MessagePattern(KAFKA_TOPICS.USER_ACTION_REQUESTED)
+  @MessagePattern(KAFKA_TOPICS.USER_ACTION_VALIDATED)
   async handleUserActionValidated(
     @Payload() data: any,
     @Ctx() context: KafkaContext,
