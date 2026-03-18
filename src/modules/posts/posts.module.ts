@@ -5,9 +5,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { KafkaModule } from 'src/kafka/kafka.module';
 import { Post } from './entities/post.entity';
 import { PostsConsumer } from './posts.consumer';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Post]), KafkaModule],
+  imports: [TypeOrmModule.forFeature([Post]), KafkaModule, HttpModule],
   controllers: [PostsController, PostsConsumer],
   providers: [PostsService],
   exports: [TypeOrmModule, PostsService],

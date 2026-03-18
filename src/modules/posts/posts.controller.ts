@@ -7,32 +7,24 @@ import {
   Delete,
   Put,
   Req,
-  UnauthorizedException,
+  UseGuards,
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
-import { access } from 'fs';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { SocialAuthGuard } from 'src/common/guards/auth.guard';
 
 @Controller('Posts')
 export class PostsController {
   constructor(private readonly postsService: PostsService) {}
 
   @ApiBearerAuth()
+  @UseGuards(SocialAuthGuard)
   @Post('CreateNewPost')
   async create(@Body() createPostDto: CreatePostDto, @Req() request: any) {
-    const authHeader = Array.isArray(request.headers.authorization)
-      ? request.headers.authorization[0]
-      : request.headers.authorization;
-
-    if (!authHeader?.startsWith('Bearer ')) {
-      throw new UnauthorizedException('Access token is required');
-    }
-
-    const accessToken = authHeader.slice(7).trim();
-
-    return this.postsService.create(createPostDto, accessToken);
+    const employeeInfo = request.user;
+    return this.postsService.createPostSync(createPostDto, employeeInfo);
   }
 
   @Get('GetAllPosts')
