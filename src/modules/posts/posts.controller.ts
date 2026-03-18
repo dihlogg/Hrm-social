@@ -5,26 +5,33 @@ import {
   Body,
   Param,
   Delete,
-  Put,
   Req,
   UseGuards,
+  Query,
+  Patch,
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { SocialAuthGuard } from 'src/common/guards/auth.guard';
-
+import { PaginationDto } from 'src/utils/pagination/pagination.dto';
+@ApiTags('Posts')
+@ApiBearerAuth()
+@UseGuards(SocialAuthGuard)
 @Controller('Posts')
 export class PostsController {
   constructor(private readonly postsService: PostsService) {}
 
-  @ApiBearerAuth()
-  @UseGuards(SocialAuthGuard)
   @Post('CreateNewPost')
   async create(@Body() createPostDto: CreatePostDto, @Req() request: any) {
     const employeeInfo = request.user;
-    return this.postsService.createPostSync(createPostDto, employeeInfo);
+    return this.postsService.createPost(createPostDto, employeeInfo);
+  }
+
+  @Get('GetPostList')
+  async getPostList(@Query() query: PaginationDto) {
+    return this.postsService.getPostList(query);
   }
 
   @Get('GetAllPosts')
@@ -37,13 +44,19 @@ export class PostsController {
     return this.postsService.findOne(id);
   }
 
-  @Put('UpdatePost/:id')
-  async update(@Param('id') id: string, @Body() updatePostDto: UpdatePostDto) {
-    return this.postsService.update(id, updatePostDto);
+  @Patch('UpdatePost/:id')
+  async update(
+    @Param('id') id: string,
+    @Body() updatePostDto: UpdatePostDto,
+    @Req() request: any,
+  ) {
+    const employeeId = request.user.employeeId;
+    return this.postsService.update(id, updatePostDto, employeeId);
   }
 
   @Delete('DeletePost/:id')
-  async delete(@Param('id') id: string) {
-    return this.postsService.delete(id);
+  async delete(@Param('id') id: string, @Req() request: any) {
+    const employeeId = request.user.employeeId;
+    return this.postsService.delete(id, employeeId);
   }
 }
