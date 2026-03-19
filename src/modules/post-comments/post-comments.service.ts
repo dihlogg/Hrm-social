@@ -26,26 +26,9 @@ export class PostCommentsService {
       ...createCommentDto,
       employeeId: employeeInfo.employeeId,
       employeeFullName: employeeInfo.fullName,
+      employeeAvatarUrl: employeeInfo.avatarUrl,
     });
     return await this.repo.save(comment);
-  }
-
-  async findByPost(postId: string, dto: PaginationDto) {
-    const { page = 1, pageSize = 10 } = dto;
-
-    const query = this.repo
-      .createQueryBuilder('comment')
-      .where('comment.postId = :postId', { postId })
-      .leftJoinAndSelect('comment.reactionCounts', 'reactionCounts')
-      .leftJoinAndSelect('comment.children', 'children')
-      .orderBy('comment.createDate', 'ASC');
-
-    return paginateAndFormat(query, {
-      page: Number(page),
-      pageSize: Number(pageSize),
-      useQueryBuilder: true,
-      queryBuilder: query,
-    });
   }
 
   async findAll(): Promise<PostComment[]> {
@@ -91,5 +74,33 @@ export class PostCommentsService {
       throw new NotFoundException('This comment for post not found');
     }
     return true;
+  }
+
+  async findByPost(
+    postId: string,
+    dto: PaginationDto,
+    currentEmployeeId: string,
+  ) {
+    const { page = 1, pageSize = 10 } = dto;
+
+    const query = this.repo
+      .createQueryBuilder('comment')
+      .where('comment.postId = :postId', { postId })
+      .leftJoinAndSelect('comment.reactionCounts', 'reactionCounts')
+      .leftJoinAndSelect(
+        'comment.reactions',
+        'currentReaction',
+        'currentReaction.employeeId = :currentEmployeeId',
+        { currentEmployeeId },
+      )
+      .leftJoinAndSelect('comment.children', 'children')
+      .orderBy('comment.createDate', 'ASC');
+
+    return paginateAndFormat(query, {
+      page: Number(page),
+      pageSize: Number(pageSize),
+      useQueryBuilder: true,
+      queryBuilder: query,
+    });
   }
 }

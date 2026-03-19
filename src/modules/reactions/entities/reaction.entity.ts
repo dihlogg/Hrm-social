@@ -10,8 +10,11 @@ export class Reaction extends BaseEntities {
   @Column('uuid')
   employeeId: string;
 
-  @Column({ nullable: true})
+  @Column({ nullable: true })
   employeeFullName: string;
+
+  @Column({ nullable: true })
+  employeeAvatarUrl: string;
 
   @Column()
   reactionType: string;

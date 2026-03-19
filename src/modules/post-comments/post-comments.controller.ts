@@ -41,8 +41,14 @@ export class PostCommentsController {
   async findByPost(
     @Param('postId') postId: string,
     @Query() query: PaginationDto,
+    @Req() request: any,
   ) {
-    return this.postCommentsService.findByPost(postId, query);
+    const currentEmployeeId = request.user.employeeId;
+    return this.postCommentsService.findByPost(
+      postId,
+      query,
+      currentEmployeeId,
+    );
   }
 
   @Get('GetCommentById/:id')

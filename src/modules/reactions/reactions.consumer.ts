@@ -111,12 +111,12 @@ export class ReactionsBatchConsumerService
 
           if (event.action !== 'TOGGLE_REACTION' || !event.data) continue;
 
-          const targetType: TargetType | null = event.data.postId
-            ? 'POST'
-            : event.data.postCommentId
-              ? 'COMMENT'
+          const targetType: TargetType | null = event.data.postCommentId
+            ? 'COMMENT'
+            : event.data.postId
+              ? 'POST'
               : null;
-          const targetId = event.data.postId || event.data.postCommentId;
+          const targetId = event.data.postCommentId || event.data.postId;
 
           if (
             !targetType ||

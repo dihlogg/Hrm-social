@@ -30,10 +30,24 @@ export class PostsController {
   }
 
   @Get('GetPostList')
-  async getPostList(@Query() query: PaginationDto) {
-    return this.postsService.getPostList(query);
+  async getPostList(@Query() query: PaginationDto, @Req() request: any) {
+    const currentEmployeeId = request.user.employeeId;
+    return this.postsService.getPostList(query, currentEmployeeId);
   }
 
+  @Get('GetPostsByEmployee/:employeeId')
+  async getPostsByEmployee(
+    @Param('employeeId') employeeId: string,
+    @Query() query: PaginationDto,
+    @Req() request: any,
+  ) {
+    const currentEmployeeId = request.user.employeeId;
+    return this.postsService.getPostsByEmployee(
+      employeeId,
+      query,
+      currentEmployeeId,
+    );
+  }
   @Get('GetAllPosts')
   async findAll() {
     return this.postsService.findAll();
