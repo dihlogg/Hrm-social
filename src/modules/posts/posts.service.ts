@@ -25,17 +25,52 @@ export class PostsService {
       ...createPostDto,
       employeeId: employeeInfo.employeeId,
       employeeFullName: employeeInfo.fullName,
+      employeeAvatarUrl: employeeInfo.avatarUrl,
     });
 
     await this.repo.save(post);
     return post;
   }
 
-  async getPostList(dto: PaginationDto) {
+  async getPostList(dto: PaginationDto, currentEmployeeId: string) {
     const { page = 1, pageSize = 10 } = dto;
 
-    const query = this.repo.createQueryBuilder('post')
+    const query = this.repo
+      .createQueryBuilder('post')
       .leftJoinAndSelect('post.reactionCounts', 'reactionCounts')
+      .leftJoinAndSelect(
+        'post.reactions',
+        'currentReaction',
+        'currentReaction.employeeId = :currentEmployeeId',
+        { currentEmployeeId },
+      )
+      .orderBy('post.createDate', 'DESC');
+
+    return paginateAndFormat(query, {
+      page: Number(page),
+      pageSize: Number(pageSize),
+      useQueryBuilder: true,
+      queryBuilder: query,
+    });
+  }
+
+  async getPostsByEmployee(
+    employeeId: string,
+    dto: PaginationDto,
+    currentEmployeeId: string,
+  ) {
+    const { page = 1, pageSize = 10 } = dto;
+
+    const query = this.repo
+      .createQueryBuilder('post')
+      .where('post.employeeId = :employeeId', { employeeId })
+      .leftJoinAndSelect('post.reactionCounts', 'reactionCounts')
+      .leftJoinAndSelect(
+        'post.reactions',
+        'currentReaction',
+        'currentReaction.employeeId = :currentEmployeeId',
+        { currentEmployeeId },
+      )
       .orderBy('post.createDate', 'DESC');
 
     return paginateAndFormat(query, {

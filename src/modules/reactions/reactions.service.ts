@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateReactionDto } from './dto/create-reaction.dto';
 import { UpdateReactionDto } from './dto/update-reaction.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -6,6 +10,9 @@ import { Reaction } from './entities/reaction.entity';
 import { Repository } from 'typeorm';
 import { ProducerService } from 'src/kafka/producers/producer.service';
 import { KAFKA_TOPICS } from 'src/kafka/config/kafka-topics.constant';
+import { PaginationDto } from 'src/utils/pagination/pagination.dto';
+import { paginateAndFormat } from 'src/utils/pagination/pagination.util';
+import e from 'express';
 
 @Injectable()
 export class ReactionsService {
@@ -14,9 +21,14 @@ export class ReactionsService {
     private readonly producerService: ProducerService,
   ) {}
 
-  async create(createReactionDto: CreateReactionDto, employeeInfo: any): Promise<any> {
+  async create(
+    createReactionDto: CreateReactionDto,
+    employeeInfo: any,
+  ): Promise<any> {
     if (!createReactionDto.postId && !createReactionDto.postCommentId) {
-      throw new BadRequestException('Either postId or postCommentId must be provided');
+      throw new BadRequestException(
+        'Either postId or postCommentId must be provided',
+      );
     }
 
     const partitionKey = createReactionDto.postCommentId
@@ -29,6 +41,7 @@ export class ReactionsService {
         ...createReactionDto,
         employeeId: employeeInfo.employeeId,
         employeeFullName: employeeInfo.fullName,
+        employeeAvatarUrl: employeeInfo.avatarUrl,
         createDate: new Date().toISOString(),
       },
     };
@@ -73,5 +86,35 @@ export class ReactionsService {
       throw new NotFoundException('This reaction not found');
     }
     return true;
+  }
+
+  async getReactionsByPost(postId: string, dto: PaginationDto) {
+    const { page = 1, pageSize = 10 } = dto;
+    const query = this.repo
+      .createQueryBuilder('reaction')
+      .where('reaction.postId = :postId', { postId })
+      .orderBy('reaction.createDate', 'DESC');
+
+    return paginateAndFormat(query, {
+      page: Number(page),
+      pageSize: Number(pageSize),
+      useQueryBuilder: true,
+      queryBuilder: query,
+    });
+  }
+
+  async getReactionsByComment(postCommentId: string, dto: PaginationDto) {
+    const { page = 1, pageSize = 10 } = dto;
+    const query = this.repo
+      .createQueryBuilder('reaction')
+      .where('reaction.postCommentId = :postCommentId', { postCommentId })
+      .orderBy('reaction.createDate', 'DESC');
+
+    return paginateAndFormat(query, {
+      page: Number(page),
+      pageSize: Number(pageSize),
+      useQueryBuilder: true,
+      queryBuilder: query,
+    });
   }
 }
