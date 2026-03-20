@@ -18,8 +18,8 @@ export class Post extends BaseEntities {
   @Column()
   content: string;
 
-  @Column({ nullable: true })
-  imageUrl: string;
+  @Column('text', { array: true, nullable: true })
+  imageUrls: string[];
 
   @Column()
   status: string;

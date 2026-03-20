@@ -1,14 +1,11 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 export class CreatePostDto {
-    // @ApiProperty()
-    // employeeId: string;
-
     @ApiProperty()
     content: string;
 
-    @ApiProperty()
-    imageUrl?: string;
+    @ApiPropertyOptional({ type: [String], description: 'Images URL' })
+    imageUrls?: string[];
 
     @ApiProperty() 
     status: string;

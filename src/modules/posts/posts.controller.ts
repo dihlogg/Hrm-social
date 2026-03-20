@@ -73,4 +73,19 @@ export class PostsController {
     const employeeId = request.user.employeeId;
     return this.postsService.delete(id, employeeId);
   }
+
+  @Get('GetTopReactedPosts')
+  async getTopReactedPosts(@Query() query: PaginationDto, @Req() request: any) {
+    const currentEmployeeId = request.user.employeeId;
+    return this.postsService.getTopReactedPosts(query, currentEmployeeId);
+  }
+
+  @Get('GetTopCommentedPosts')
+  async getTopCommentedPosts(
+    @Query() query: PaginationDto,
+    @Req() request: any,
+  ) {
+    const currentEmployeeId = request.user.employeeId;
+    return this.postsService.getTopCommentedPosts(query, currentEmployeeId);
+  }
 }

@@ -135,4 +135,73 @@ export class PostsService {
     }
     return true;
   }
+
+  async getTopReactedPosts(dto: PaginationDto, currentEmployeeId: string) {
+    const { page = 1, pageSize = 10 } = dto;
+
+    const query = this.repo
+      .createQueryBuilder('post')
+      .leftJoinAndSelect('post.reactionCounts', 'reactionCounts')
+      .leftJoinAndSelect(
+        'post.reactions',
+        'currentReaction',
+        'currentReaction.employeeId = :currentEmployeeId',
+        { currentEmployeeId },
+      )
+      .leftJoin(
+        (subQuery) =>
+          subQuery
+            .select('rc."postId"', 'postId')
+            .addSelect('SUM(rc.count)', 'total_reactions')
+            .from('ReactionCounts', 'rc')
+            .groupBy('rc."postId"'),
+        'reaction_agg',
+        'reaction_agg."postId" = post.id',
+      )
+      .addSelect('COALESCE(reaction_agg.total_reactions, 0)', 'sort_total_reactions')
+      .orderBy('sort_total_reactions', 'DESC')
+      .addOrderBy('post.createDate', 'DESC');
+
+    return paginateAndFormat(query, {
+      page: Number(page),
+      pageSize: Number(pageSize),
+      useQueryBuilder: true,
+      queryBuilder: query,
+    });
+  }
+
+  async getTopCommentedPosts(dto: PaginationDto, currentEmployeeId: string) {
+    const { page = 1, pageSize = 10 } = dto;
+
+    const query = this.repo
+      .createQueryBuilder('post')
+      .leftJoinAndSelect('post.reactionCounts', 'reactionCounts')
+      .leftJoinAndSelect(
+        'post.reactions',
+        'currentReaction',
+        'currentReaction.employeeId = :currentEmployeeId',
+        { currentEmployeeId },
+      )
+      .loadRelationCountAndMap('post.totalComments', 'post.postComments')
+      .leftJoin(
+        (subQuery) =>
+          subQuery
+            .select('pc."postId"', 'postId')
+            .addSelect('COUNT(pc.id)', 'total_comments')
+            .from('PostComments', 'pc')
+            .groupBy('pc."postId"'),
+        'comment_agg',
+        'comment_agg."postId" = post.id',
+      )
+      .addSelect('COALESCE(comment_agg.total_comments, 0)', 'sort_total_comments')
+      .orderBy('sort_total_comments', 'DESC')
+      .addOrderBy('post.createDate', 'DESC');
+
+    return paginateAndFormat(query, {
+      page: Number(page),
+      pageSize: Number(pageSize),
+      useQueryBuilder: true,
+      queryBuilder: query,
+    });
+  }
 }
