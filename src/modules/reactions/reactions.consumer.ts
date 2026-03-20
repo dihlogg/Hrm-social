@@ -8,7 +8,6 @@ import { Kafka, Consumer } from 'kafkajs';
 import { ConfigService } from '@nestjs/config';
 import { KAFKA_TOPICS } from 'src/kafka/config/kafka-topics.constant';
 import { ReactionEvent } from './interfaces/reaction.event.interface';
-import { sleep } from 'src/utils/sleep';
 import {
   NormalizedAction,
   TargetType,
@@ -21,11 +20,6 @@ export class ReactionsBatchConsumerService
 {
   private consumer: Consumer;
   private readonly logger = new Logger(ReactionsBatchConsumerService.name);
-  private readonly batchSize: number;
-  private readonly batchHoldMs: number;
-  private readonly batchRetryDelayMs: number;
-  private smallBatchFirstSeenAt: number | null = null;
-  private lastLoggedBatchSize: number = 0;
 
   constructor(
     private readonly configService: ConfigService,
@@ -33,15 +27,6 @@ export class ReactionsBatchConsumerService
   ) {
     const broker =
       this.configService.get<string>('KAFKA_BROKER') || 'localhost:9092';
-    this.batchSize = Number(
-      this.configService.get<string>('BATCH_SIZE') || 100,
-    );
-    this.batchHoldMs = Number(
-      this.configService.get<string>('BATCH_HOLD_MS') || 5000,
-    );
-    this.batchRetryDelayMs = Number(
-      this.configService.get<string>('BATCH_RETRY_DELAY_MS') || 250,
-    );
 
     const kafka = new Kafka({ brokers: [broker] });
     this.consumer = kafka.consumer({ groupId: 'reactions-batch-group' });
@@ -73,29 +58,9 @@ export class ReactionsBatchConsumerService
         const messages = batch.messages;
         if (messages.length === 0) return;
 
-        if (messages.length < this.batchSize) {
-          const now = Date.now();
-          if (this.smallBatchFirstSeenAt === null) {
-            this.smallBatchFirstSeenAt = now;
-          }
-
-          const elapsed = now - this.smallBatchFirstSeenAt;
-          if (elapsed < this.batchHoldMs) {
-            if (this.lastLoggedBatchSize !== messages.length) {
-              this.logger.log(
-                `Current batch has ${messages.length} messages`,
-              );
-              this.lastLoggedBatchSize = messages.length;
-            }
-            await heartbeat();
-            await sleep(this.batchRetryDelayMs);
-            return;
-          }
-        }
-
-        this.smallBatchFirstSeenAt = null;
-        this.lastLoggedBatchSize = 0;
-        this.logger.log(`Processing batch of ${messages.length} reactions`);
+        this.logger.log(
+          `Processing incoming messages immediately (count: ${messages.length})`,
+        );
 
         const latestActionsMap = new Map<string, NormalizedAction>();
         for (const message of messages) {
@@ -143,7 +108,12 @@ export class ReactionsBatchConsumerService
         const latestActions = Array.from(latestActionsMap.values());
 
         if (latestActions.length > 0) {
-          await this.batchProcessor.processBatch(latestActions);
+          try {
+            await this.batchProcessor.processBatch(latestActions);
+          } catch (error) {
+            this.logger.error('Failed to process reaction messages', error);
+            throw error;
+          }
         }
 
         for (const message of messages) {
