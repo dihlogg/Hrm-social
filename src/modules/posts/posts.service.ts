@@ -10,6 +10,8 @@ import { Post } from './entities/post.entity';
 import { Repository } from 'typeorm';
 import { PaginationDto } from 'src/utils/pagination/pagination.dto';
 import { paginateAndFormat } from 'src/utils/pagination/pagination.util';
+import { paginateWithCursor } from 'src/utils/pagination/cursor-pagination.util';
+import { CursorPaginationDto } from 'src/utils/pagination/cursor-pagination.dto';
 @Injectable()
 export class PostsService {
   constructor(
@@ -32,9 +34,30 @@ export class PostsService {
     return post;
   }
 
-  async getPostList(dto: PaginationDto, currentEmployeeId: string) {
-    const { page = 1, pageSize = 10 } = dto;
+  // async getPostList(dto: PaginationDto, currentEmployeeId: string) {
+  //   const { page = 1, pageSize = 10 } = dto;
 
+  //   const query = this.repo
+  //     .createQueryBuilder('post')
+  //     .leftJoinAndSelect('post.reactionCounts', 'reactionCounts')
+  //     .leftJoinAndSelect(
+  //       'post.reactions',
+  //       'currentReaction',
+  //       'currentReaction.employeeId = :currentEmployeeId',
+  //       { currentEmployeeId },
+  //     )
+  //     .loadRelationCountAndMap('post.commentCount', 'post.postComments')
+  //     .orderBy('post.createDate', 'DESC');
+
+  //   return paginateAndFormat(query, {
+  //     page: Number(page),
+  //     pageSize: Number(pageSize),
+  //     useQueryBuilder: true,
+  //     queryBuilder: query,
+  //   });
+  // }
+
+  async getPostList(dto: CursorPaginationDto, currentEmployeeId: string) {
     const query = this.repo
       .createQueryBuilder('post')
       .leftJoinAndSelect('post.reactionCounts', 'reactionCounts')
@@ -44,14 +67,15 @@ export class PostsService {
         'currentReaction.employeeId = :currentEmployeeId',
         { currentEmployeeId },
       )
-      .loadRelationCountAndMap('post.commentCount', 'post.postComments')
-      .orderBy('post.createDate', 'DESC');
+      .loadRelationCountAndMap('post.commentCount', 'post.postComments');
 
-    return paginateAndFormat(query, {
-      page: Number(page),
-      pageSize: Number(pageSize),
-      useQueryBuilder: true,
-      queryBuilder: query,
+    return paginateWithCursor(query, {
+      limit: dto.limit!,
+      cursor: dto.cursor,
+      entityAlias: 'post',
+      cursorColumn: 'createDate',
+      idColumn: 'id',
+      order: 'DESC',
     });
   }
 
@@ -137,9 +161,7 @@ export class PostsService {
     return true;
   }
 
-  async getTopReactedPosts(dto: PaginationDto, currentEmployeeId: string) {
-    const { page = 1, pageSize = 10 } = dto;
-
+  async getTopReactedPosts(dto: CursorPaginationDto, currentEmployeeId: string) {
     const query = this.repo
       .createQueryBuilder('post')
       .leftJoinAndSelect('post.reactionCounts', 'reactionCounts')
@@ -159,21 +181,23 @@ export class PostsService {
         'reaction_agg',
         'reaction_agg."postId" = post.id',
       )
-      .addSelect('COALESCE(reaction_agg.total_reactions, 0)', 'sort_total_reactions')
-      .orderBy('sort_total_reactions', 'DESC')
-      .addOrderBy('post.createDate', 'DESC');
+      .addSelect(
+        'COALESCE(reaction_agg.total_reactions, 0)',
+        'sort_total_reactions',
+      )
+      .orderBy('sort_total_reactions', 'DESC');
 
-    return paginateAndFormat(query, {
-      page: Number(page),
-      pageSize: Number(pageSize),
-      useQueryBuilder: true,
-      queryBuilder: query,
+    return paginateWithCursor(query, {
+      limit: dto.limit!,
+      cursor: dto.cursor,
+      entityAlias: 'post',
+      cursorColumn: 'createDate',
+      idColumn: 'id',
+      order: 'DESC',
     });
   }
 
-  async getTopCommentedPosts(dto: PaginationDto, currentEmployeeId: string) {
-    const { page = 1, pageSize = 10 } = dto;
-
+  async getTopCommentedPosts(dto: CursorPaginationDto, currentEmployeeId: string) {
     const query = this.repo
       .createQueryBuilder('post')
       .leftJoinAndSelect('post.reactionCounts', 'reactionCounts')
@@ -194,15 +218,19 @@ export class PostsService {
         'comment_agg',
         'comment_agg."postId" = post.id',
       )
-      .addSelect('COALESCE(comment_agg.total_comments, 0)', 'sort_total_comments')
-      .orderBy('sort_total_comments', 'DESC')
-      .addOrderBy('post.createDate', 'DESC');
+      .addSelect(
+        'COALESCE(comment_agg.total_comments, 0)',
+        'sort_total_comments',
+      )
+      .orderBy('sort_total_comments', 'DESC');
 
-    return paginateAndFormat(query, {
-      page: Number(page),
-      pageSize: Number(pageSize),
-      useQueryBuilder: true,
-      queryBuilder: query,
+    return paginateWithCursor(query, {
+      limit: dto.limit!,
+      cursor: dto.cursor,
+      entityAlias: 'post',
+      cursorColumn: 'createDate',
+      idColumn: 'id',
+      order: 'DESC',
     });
   }
 }

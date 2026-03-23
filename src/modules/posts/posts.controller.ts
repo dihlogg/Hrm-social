@@ -16,6 +16,7 @@ import { UpdatePostDto } from './dto/update-post.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { SocialAuthGuard } from 'src/common/guards/auth.guard';
 import { PaginationDto } from 'src/utils/pagination/pagination.dto';
+import { CursorPaginationDto } from 'src/utils/pagination/cursor-pagination.dto';
 @ApiTags('Posts')
 @ApiBearerAuth()
 @UseGuards(SocialAuthGuard)
@@ -30,7 +31,7 @@ export class PostsController {
   }
 
   @Get('GetPostList')
-  async getPostList(@Query() query: PaginationDto, @Req() request: any) {
+  async getPostList(@Query() query: CursorPaginationDto, @Req() request: any) {
     const currentEmployeeId = request.user.employeeId;
     return this.postsService.getPostList(query, currentEmployeeId);
   }
@@ -75,14 +76,17 @@ export class PostsController {
   }
 
   @Get('GetTopReactedPosts')
-  async getTopReactedPosts(@Query() query: PaginationDto, @Req() request: any) {
+  async getTopReactedPosts(
+    @Query() query: CursorPaginationDto,
+    @Req() request: any,
+  ) {
     const currentEmployeeId = request.user.employeeId;
     return this.postsService.getTopReactedPosts(query, currentEmployeeId);
   }
 
   @Get('GetTopCommentedPosts')
   async getTopCommentedPosts(
-    @Query() query: PaginationDto,
+    @Query() query: CursorPaginationDto,
     @Req() request: any,
   ) {
     const currentEmployeeId = request.user.employeeId;
