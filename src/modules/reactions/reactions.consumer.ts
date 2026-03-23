@@ -29,7 +29,7 @@ export class ReactionsBatchConsumerService
       this.configService.get<string>('KAFKA_BROKER') || 'localhost:9092';
 
     const kafka = new Kafka({ brokers: [broker] });
-    this.consumer = kafka.consumer({ groupId: 'reactions-batch-group' });
+    this.consumer = kafka.consumer({ groupId: 'hrm-group' });
   }
 
   private getActionKey(
@@ -59,7 +59,7 @@ export class ReactionsBatchConsumerService
         if (messages.length === 0) return;
 
         this.logger.log(
-          `Processing incoming messages immediately (count: ${messages.length})`,
+          `Processing incoming messages (count: ${messages.length})`,
         );
 
         const latestActionsMap = new Map<string, NormalizedAction>();

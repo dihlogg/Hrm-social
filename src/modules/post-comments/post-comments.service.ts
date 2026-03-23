@@ -86,6 +86,7 @@ export class PostCommentsService {
     const query = this.repo
       .createQueryBuilder('comment')
       .where('comment.postId = :postId', { postId })
+      .andWhere('comment.parentId IS NULL')
       .leftJoinAndSelect('comment.reactionCounts', 'reactionCounts')
       .leftJoinAndSelect(
         'comment.reactions',
@@ -93,14 +94,68 @@ export class PostCommentsService {
         'currentReaction.employeeId = :currentEmployeeId',
         { currentEmployeeId },
       )
-      .leftJoinAndSelect('comment.children', 'children')
+      .loadRelationCountAndMap('comment.repliesCount', 'comment.children')
       .orderBy('comment.createDate', 'ASC');
 
-    return paginateAndFormat(query, {
+    const result = await paginateAndFormat(query, {
       page: Number(page),
       pageSize: Number(pageSize),
       useQueryBuilder: true,
       queryBuilder: query,
     });
+
+    result.data = result.data.map((comment: any) => {
+      const myReaction =
+        comment.reactions && comment.reactions.length > 0
+          ? comment.reactions[0].reactionType
+          : null;
+
+      delete comment.reactions;
+
+      return {
+        ...comment,
+        myReaction,
+      };
+    });
+
+    return result;
+  }
+
+  async findReplies(
+    commentId: string,
+    dto: PaginationDto,
+    currentEmployeeId: string,
+  ) {
+    const { page = 1, pageSize = 10 } = dto;
+
+    const query = this.repo
+      .createQueryBuilder('comment')
+      .where('comment.parentId = :commentId', { commentId })
+      .leftJoinAndSelect('comment.reactionCounts', 'reactionCounts')
+      .leftJoinAndSelect(
+        'comment.reactions',
+        'currentReaction',
+        'currentReaction.employeeId = :currentEmployeeId',
+        { currentEmployeeId },
+      )
+      .orderBy('comment.createDate', 'ASC');
+
+    const result = await paginateAndFormat(query, {
+      page: Number(page),
+      pageSize: Number(pageSize),
+      useQueryBuilder: true,
+      queryBuilder: query,
+    });
+
+    result.data = result.data.map((comment: any) => {
+      const myReaction =
+        comment.reactions && comment.reactions.length > 0
+          ? comment.reactions[0].reactionType
+          : null;
+      delete comment.reactions;
+      return { ...comment, myReaction };
+    });
+
+    return result;
   }
 }
