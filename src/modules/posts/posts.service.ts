@@ -44,6 +44,7 @@ export class PostsService {
         'currentReaction.employeeId = :currentEmployeeId',
         { currentEmployeeId },
       )
+      .loadRelationCountAndMap('post.commentCount', 'post.postComments')
       .orderBy('post.createDate', 'DESC');
 
     return paginateAndFormat(query, {

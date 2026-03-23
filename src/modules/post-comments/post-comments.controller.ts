@@ -73,4 +73,18 @@ export class PostCommentsController {
   async delete(@Param('id') id: string, @Req() request: any) {
     return this.postCommentsService.delete(id, request.user.employeeId);
   }
+
+  @Get('GetReplies/:commentId')
+  async getReplies(
+    @Param('commentId') commentId: string,
+    @Query() query: PaginationDto,
+    @Req() request: any,
+  ) {
+    const currentEmployeeId = request.user.employeeId;
+    return this.postCommentsService.findReplies(
+      commentId,
+      query,
+      currentEmployeeId,
+    );
+  }
 }
