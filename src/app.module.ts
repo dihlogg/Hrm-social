@@ -8,6 +8,7 @@ import { PostCommentsModule } from './modules/post-comments/post-comments.module
 import { ReactionsModule } from './modules/reactions/reactions.module';
 import { ReactionCountModule } from './modules/reaction-count/reaction-count.module';
 import { KafkaModule } from './kafka/kafka.module';
+import { MentionsModule } from './modules/mentions/mentions.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { KafkaModule } from './kafka/kafka.module';
     PostCommentsModule,
     ReactionsModule,
     ReactionCountModule,
+    MentionsModule,
     KafkaModule
   ],
   controllers: [AppController],

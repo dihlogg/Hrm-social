@@ -9,4 +9,7 @@ export class CreatePostDto {
 
     @ApiProperty() 
     status: string;
+
+    @ApiPropertyOptional({ type: [String], description: 'List of mentioned employee IDs' })
+    mentionedEmployeeIds?: string[];
 }

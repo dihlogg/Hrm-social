@@ -29,7 +29,7 @@ export class ReactionsBatchConsumerService
       this.configService.get<string>('KAFKA_BROKER') || 'localhost:9092';
 
     const kafka = new Kafka({ brokers: [broker] });
-    this.consumer = kafka.consumer({ groupId: 'hrm-group' });
+    this.consumer = kafka.consumer({ groupId: 'hrm-core' });
   }
 
   private getActionKey(

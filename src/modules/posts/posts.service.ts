@@ -12,55 +12,89 @@ import { PaginationDto } from 'src/utils/pagination/pagination.dto';
 import { paginateAndFormat } from 'src/utils/pagination/pagination.util';
 import { paginateWithCursor } from 'src/utils/pagination/cursor-pagination.util';
 import { CursorPaginationDto } from 'src/utils/pagination/cursor-pagination.dto';
+import { Mention } from '../mentions/entities/mention.entity';
+import { ProducerService } from 'src/kafka/producers/producer.service';
+import { KAFKA_TOPICS } from 'src/kafka/config/kafka-topics.constant';
 @Injectable()
 export class PostsService {
   constructor(
     @InjectRepository(Post)
     private readonly repo: Repository<Post>,
+    private readonly producerService: ProducerService
   ) {}
 
   async createPost(
     createPostDto: CreatePostDto,
     employeeInfo: any,
   ): Promise<Post> {
-    const post = this.repo.create({
-      ...createPostDto,
-      employeeId: employeeInfo.employeeId,
-      employeeFullName: employeeInfo.fullName,
-      employeeAvatarUrl: employeeInfo.avatarUrl,
-    });
+    const queryRunner = this.repo.manager.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-    await this.repo.save(post);
-    return post;
+    try {
+      const post = queryRunner.manager.create(Post, {
+        content: createPostDto.content,
+        imageUrls: createPostDto.imageUrls,
+        status: createPostDto.status,
+        employeeId: employeeInfo.employeeId,
+        employeeFullName: employeeInfo.fullName,
+        employeeAvatarUrl: employeeInfo.avatarUrl,
+      });
+      await queryRunner.manager.save(post);
+
+      let uniqueMentions: string[] = [];
+
+      if (createPostDto.mentionedEmployeeIds && createPostDto.mentionedEmployeeIds.length > 0) {
+        uniqueMentions = [...new Set(createPostDto.mentionedEmployeeIds)]
+            .filter(id => id !== employeeInfo.employeeId);
+
+        const mentions = uniqueMentions.map(mentionedId => {
+          return queryRunner.manager.create(Mention, {
+            mentionedEmployeeId: mentionedId,
+            authorId: employeeInfo.employeeId,
+            postId: post.id,
+          });
+        });
+        await queryRunner.manager.save(mentions);
+      }
+
+      await queryRunner.commitTransaction();
+
+      if (uniqueMentions.length > 0) {
+        const eventPayload = {
+          action: 'USER_MENTIONED',
+          data: {
+            sourceType: 'POST', 
+            sourceId: post.id,
+            authorId: employeeInfo.employeeId,
+            authorFullName: employeeInfo.fullName,
+            authorAvatarUrl: employeeInfo.avatarUrl,
+            mentionedIds: uniqueMentions,
+            content: post.content,
+            createDate: new Date().toISOString(),
+          },
+        };
+
+        await this.producerService.produce(KAFKA_TOPICS.USER_MENTIONED, {
+          key: `POST:${post.id}`,
+          value: JSON.stringify(eventPayload),
+        });
+      }
+
+      return post;
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
   }
-
-  // async getPostList(dto: PaginationDto, currentEmployeeId: string) {
-  //   const { page = 1, pageSize = 10 } = dto;
-
-  //   const query = this.repo
-  //     .createQueryBuilder('post')
-  //     .leftJoinAndSelect('post.reactionCounts', 'reactionCounts')
-  //     .leftJoinAndSelect(
-  //       'post.reactions',
-  //       'currentReaction',
-  //       'currentReaction.employeeId = :currentEmployeeId',
-  //       { currentEmployeeId },
-  //     )
-  //     .loadRelationCountAndMap('post.commentCount', 'post.postComments')
-  //     .orderBy('post.createDate', 'DESC');
-
-  //   return paginateAndFormat(query, {
-  //     page: Number(page),
-  //     pageSize: Number(pageSize),
-  //     useQueryBuilder: true,
-  //     queryBuilder: query,
-  //   });
-  // }
 
   async getPostList(dto: CursorPaginationDto, currentEmployeeId: string) {
     const query = this.repo
       .createQueryBuilder('post')
       .leftJoinAndSelect('post.reactionCounts', 'reactionCounts')
+      .leftJoinAndSelect('post.mentions', 'mentions')
       .leftJoinAndSelect(
         'post.reactions',
         'currentReaction',
