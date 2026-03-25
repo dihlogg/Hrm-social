@@ -1,4 +1,5 @@
 import { BaseEntities } from 'src/common/entities/base.entity';
+import { Mention } from 'src/modules/mentions/entities/mention.entity';
 import { PostComment } from 'src/modules/post-comments/entities/post-comment.entity';
 import { ReactionCount } from 'src/modules/reaction-count/entities/reaction-count.entity';
 import { Reaction } from 'src/modules/reactions/entities/reaction.entity';
@@ -32,4 +33,7 @@ export class Post extends BaseEntities {
 
   @OneToMany(() => ReactionCount, (reactionCount) => reactionCount.posts)
   reactionCounts: ReactionCount[];
+
+  @OneToMany(() => Mention, (mention) => mention.post)
+  mentions: Mention[];
 }

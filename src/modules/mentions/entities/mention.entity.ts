@@ -14,7 +14,7 @@ export class Mention extends BaseEntities {
   @Column({ nullable: true })
   postId: string;
 
-  @ManyToOne(() => Post, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Post, (post) => post.mentions, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'postId' })
   post: Post;
 
