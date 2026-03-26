@@ -1,4 +1,5 @@
 import { BaseEntities } from 'src/common/entities/base.entity';
+import { Mention } from 'src/modules/mentions/entities/mention.entity';
 import { Post } from 'src/modules/posts/entities/post.entity';
 import { ReactionCount } from 'src/modules/reaction-count/entities/reaction-count.entity';
 import { Reaction } from 'src/modules/reactions/entities/reaction.entity';
@@ -21,7 +22,7 @@ export class PostComment extends BaseEntities {
   @Column({ nullable: true })
   postId: string;
 
-  @ManyToOne(() => Post, (post) => post.postComments)
+  @ManyToOne(() => Post, (post) => post.postComments, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'postId' })
   posts: Post;
 
@@ -30,6 +31,7 @@ export class PostComment extends BaseEntities {
 
   @ManyToOne(() => PostComment, (postComment) => postComment.children, {
     nullable: true,
+    onDelete: 'CASCADE',
   })
   parent: PostComment;
 
@@ -41,4 +43,7 @@ export class PostComment extends BaseEntities {
 
   @OneToMany(() => ReactionCount, (reactionCount) => reactionCount.postComments)
   reactionCounts: ReactionCount[];
+
+  @OneToMany(() => Mention, (mention) => mention.postComment)
+  mentions: Mention[];
 }
