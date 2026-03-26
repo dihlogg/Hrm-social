@@ -10,25 +10,87 @@ import { PostComment } from './entities/post-comment.entity';
 import { Repository } from 'typeorm';
 import { PaginationDto } from 'src/utils/pagination/pagination.dto';
 import { paginateAndFormat } from 'src/utils/pagination/pagination.util';
+import { ProducerService } from 'src/kafka/producers/producer.service';
+import { KAFKA_TOPICS } from 'src/kafka/config/kafka-topics.constant';
+import { Mention } from '../mentions/entities/mention.entity';
 
 @Injectable()
 export class PostCommentsService {
   constructor(
     @InjectRepository(PostComment)
     private readonly repo: Repository<PostComment>,
+    private readonly producerService: ProducerService,
   ) {}
 
   async create(
     createCommentDto: CreatePostCommentDto,
     employeeInfo: any,
   ): Promise<PostComment> {
-    const comment = this.repo.create({
-      ...createCommentDto,
-      employeeId: employeeInfo.employeeId,
-      employeeFullName: employeeInfo.fullName,
-      employeeAvatarUrl: employeeInfo.avatarUrl,
-    });
-    return await this.repo.save(comment);
+    const queryRunner = this.repo.manager.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const comment = queryRunner.manager.create(PostComment, {
+        content: createCommentDto.content,
+        postId: createCommentDto.postId,
+        parentId: createCommentDto.parentId,
+        employeeId: employeeInfo.employeeId,
+        employeeFullName: employeeInfo.fullName,
+        employeeAvatarUrl: employeeInfo.avatarUrl,
+      });
+      await queryRunner.manager.save(comment);
+
+      let uniqueMentions: string[] = [];
+
+      if (
+        createCommentDto.mentionedEmployeeIds &&
+        createCommentDto.mentionedEmployeeIds.length > 0
+      ) {
+        uniqueMentions = [
+          ...new Set(createCommentDto.mentionedEmployeeIds),
+        ].filter((id) => id !== employeeInfo.employeeId);
+
+        const mentions = uniqueMentions.map((mentionedId) => {
+          return queryRunner.manager.create(Mention, {
+            mentionedEmployeeId: mentionedId,
+            authorId: employeeInfo.employeeId,
+            postCommentId: comment.id,
+          });
+        });
+        await queryRunner.manager.save(mentions);
+      }
+
+      await queryRunner.commitTransaction();
+
+      if (uniqueMentions.length > 0) {
+        const eventPayload = {
+          action: 'USER_MENTIONED',
+          data: {
+            sourceType: 'COMMENT',
+            sourceId: comment.id,
+            authorId: employeeInfo.employeeId,
+            authorFullName: employeeInfo.fullName,
+            authorAvatarUrl: employeeInfo.avatarUrl,
+            mentionedIds: uniqueMentions,
+            content: comment.content,
+            createDate: new Date().toISOString(),
+          },
+        };
+
+        await this.producerService.produce(KAFKA_TOPICS.USER_MENTIONED, {
+          key: `COMMENT:${comment.id}`,
+          value: JSON.stringify(eventPayload),
+        });
+      }
+
+      return comment;
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
   }
 
   async findAll(): Promise<PostComment[]> {

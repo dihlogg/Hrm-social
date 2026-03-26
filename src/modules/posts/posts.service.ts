@@ -20,7 +20,7 @@ export class PostsService {
   constructor(
     @InjectRepository(Post)
     private readonly repo: Repository<Post>,
-    private readonly producerService: ProducerService
+    private readonly producerService: ProducerService,
   ) {}
 
   async createPost(
@@ -44,11 +44,15 @@ export class PostsService {
 
       let uniqueMentions: string[] = [];
 
-      if (createPostDto.mentionedEmployeeIds && createPostDto.mentionedEmployeeIds.length > 0) {
-        uniqueMentions = [...new Set(createPostDto.mentionedEmployeeIds)]
-            .filter(id => id !== employeeInfo.employeeId);
+      if (
+        createPostDto.mentionedEmployeeIds &&
+        createPostDto.mentionedEmployeeIds.length > 0
+      ) {
+        uniqueMentions = [
+          ...new Set(createPostDto.mentionedEmployeeIds),
+        ].filter((id) => id !== employeeInfo.employeeId);
 
-        const mentions = uniqueMentions.map(mentionedId => {
+        const mentions = uniqueMentions.map((mentionedId) => {
           return queryRunner.manager.create(Mention, {
             mentionedEmployeeId: mentionedId,
             authorId: employeeInfo.employeeId,
@@ -64,7 +68,7 @@ export class PostsService {
         const eventPayload = {
           action: 'USER_MENTIONED',
           data: {
-            sourceType: 'POST', 
+            sourceType: 'POST',
             sourceId: post.id,
             authorId: employeeInfo.employeeId,
             authorFullName: employeeInfo.fullName,
@@ -102,7 +106,6 @@ export class PostsService {
         { currentEmployeeId },
       )
       .loadRelationCountAndMap('post.commentCount', 'post.postComments');
-
     return paginateWithCursor(query, {
       limit: dto.limit!,
       cursor: dto.cursor,
@@ -195,7 +198,10 @@ export class PostsService {
     return true;
   }
 
-  async getTopReactedPosts(dto: CursorPaginationDto, currentEmployeeId: string) {
+  async getTopReactedPosts(
+    dto: CursorPaginationDto,
+    currentEmployeeId: string,
+  ) {
     const query = this.repo
       .createQueryBuilder('post')
       .leftJoinAndSelect('post.reactionCounts', 'reactionCounts')
@@ -205,6 +211,7 @@ export class PostsService {
         'currentReaction.employeeId = :currentEmployeeId',
         { currentEmployeeId },
       )
+      .loadRelationCountAndMap('post.commentCount', 'post.postComments')
       .leftJoin(
         (subQuery) =>
           subQuery
@@ -231,7 +238,10 @@ export class PostsService {
     });
   }
 
-  async getTopCommentedPosts(dto: CursorPaginationDto, currentEmployeeId: string) {
+  async getTopCommentedPosts(
+    dto: CursorPaginationDto,
+    currentEmployeeId: string,
+  ) {
     const query = this.repo
       .createQueryBuilder('post')
       .leftJoinAndSelect('post.reactionCounts', 'reactionCounts')
@@ -241,7 +251,7 @@ export class PostsService {
         'currentReaction.employeeId = :currentEmployeeId',
         { currentEmployeeId },
       )
-      .loadRelationCountAndMap('post.totalComments', 'post.postComments')
+      .loadRelationCountAndMap('post.commentCount', 'post.postComments')
       .leftJoin(
         (subQuery) =>
           subQuery

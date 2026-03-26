@@ -22,14 +22,16 @@ export class Reaction extends BaseEntities {
   @Column({ nullable: true })
   postId: string;
 
-  @ManyToOne(() => Post, (post) => post.reactions)
+  @ManyToOne(() => Post, (post) => post.reactions, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'postId' })
   posts: Post;
 
   @Column({ nullable: true })
   postCommentId: string;
 
-  @ManyToOne(() => PostComment, (postComment) => postComment.reactions)
+  @ManyToOne(() => PostComment, (postComment) => postComment.reactions, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'postCommentId' })
   postComments: PostComment;
 }
