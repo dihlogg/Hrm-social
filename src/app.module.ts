@@ -9,6 +9,7 @@ import { ReactionsModule } from './modules/reactions/reactions.module';
 import { ReactionCountModule } from './modules/reaction-count/reaction-count.module';
 import { KafkaModule } from './kafka/kafka.module';
 import { MentionsModule } from './modules/mentions/mentions.module';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
 
 @Module({
   imports: [
@@ -28,7 +29,8 @@ import { MentionsModule } from './modules/mentions/mentions.module';
     ReactionsModule,
     ReactionCountModule,
     MentionsModule,
-    KafkaModule
+    KafkaModule,
+    CloudinaryModule
   ],
   controllers: [AppController],
   providers: [AppService],
