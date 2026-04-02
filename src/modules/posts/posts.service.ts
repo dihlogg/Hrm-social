@@ -15,12 +15,14 @@ import { CursorPaginationDto } from 'src/utils/pagination/cursor-pagination.dto'
 import { Mention } from '../mentions/entities/mention.entity';
 import { ProducerService } from 'src/kafka/producers/producer.service';
 import { KAFKA_TOPICS } from 'src/kafka/config/kafka-topics.constant';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 @Injectable()
 export class PostsService {
   constructor(
     @InjectRepository(Post)
     private readonly repo: Repository<Post>,
     private readonly producerService: ProducerService,
+    private readonly cloudinaryService: CloudinaryService,
   ) {}
 
   async createPost(
@@ -191,9 +193,15 @@ export class PostsService {
     if (post.employeeId !== employeeId) {
       throw new ForbiddenException('You can only update your own posts');
     }
+    const imagesToDelete = post.imageUrls;
     const deletePost = await this.repo.delete(id);
     if (deletePost.affected === 0) {
       throw new NotFoundException('Failed to delete post');
+    }
+    if (imagesToDelete && imagesToDelete.length > 0) {
+      this.cloudinaryService.deleteImagesByUrls(imagesToDelete).catch((err) => {
+        console.error('Failed to clear Cloudinary images in background', err);
+      });
     }
     return true;
   }
