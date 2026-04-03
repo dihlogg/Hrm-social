@@ -4,7 +4,7 @@ import { PostCommentsController } from './post-comments.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PostComment } from './entities/post-comment.entity';
 import { HttpModule } from '@nestjs/axios';
-import { KafkaModule } from 'src/kafka/kafka.module';
+import { KafkaModule } from '../../kafka/kafka.module';
 
 @Module({
   imports: [TypeOrmModule.forFeature([PostComment]), HttpModule, KafkaModule],

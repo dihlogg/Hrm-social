@@ -1,7 +1,7 @@
 import { Controller, Get, Param, UseGuards } from '@nestjs/common';
 import { ReactionCountService } from './reaction-count.service';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { SocialAuthGuard } from 'src/common/guards/auth.guard';
+import { SocialAuthGuard } from '../../common/guards/auth.guard';
 
 @ApiTags('Reaction Counts')
 @ApiBearerAuth()

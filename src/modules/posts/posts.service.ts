@@ -8,14 +8,14 @@ import { UpdatePostDto } from './dto/update-post.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Post } from './entities/post.entity';
 import { Repository } from 'typeorm';
-import { PaginationDto } from 'src/utils/pagination/pagination.dto';
-import { paginateAndFormat } from 'src/utils/pagination/pagination.util';
-import { paginateWithCursor } from 'src/utils/pagination/cursor-pagination.util';
-import { CursorPaginationDto } from 'src/utils/pagination/cursor-pagination.dto';
+import { PaginationDto } from '../../utils/pagination/pagination.dto';
+import { paginateAndFormat } from '../../utils/pagination/pagination.util';
+import { paginateWithCursor } from '../../utils/pagination/cursor-pagination.util';
+import { CursorPaginationDto } from '../../utils/pagination/cursor-pagination.dto';
 import { Mention } from '../mentions/entities/mention.entity';
-import { ProducerService } from 'src/kafka/producers/producer.service';
-import { KAFKA_TOPICS } from 'src/kafka/config/kafka-topics.constant';
-import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
+import { ProducerService } from '../../kafka/producers/producer.service';
+import { KAFKA_TOPICS } from '../../kafka/config/kafka-topics.constant';
+import { CloudinaryService } from '../../cloudinary/cloudinary.service';
 @Injectable()
 export class PostsService {
   constructor(
