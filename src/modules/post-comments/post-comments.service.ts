@@ -8,10 +8,10 @@ import { UpdatePostCommentDto } from './dto/update-post-comment.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PostComment } from './entities/post-comment.entity';
 import { Repository } from 'typeorm';
-import { PaginationDto } from 'src/utils/pagination/pagination.dto';
-import { paginateAndFormat } from 'src/utils/pagination/pagination.util';
-import { ProducerService } from 'src/kafka/producers/producer.service';
-import { KAFKA_TOPICS } from 'src/kafka/config/kafka-topics.constant';
+import { PaginationDto } from '../../utils/pagination/pagination.dto';
+import { paginateAndFormat } from '../../utils/pagination/pagination.util';
+import { ProducerService } from '../../kafka/producers/producer.service';
+import { KAFKA_TOPICS } from '../../kafka/config/kafka-topics.constant';
 import { Mention } from '../mentions/entities/mention.entity';
 
 @Injectable()

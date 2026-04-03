@@ -14,8 +14,8 @@ import { ReactionsService } from './reactions.service';
 import { CreateReactionDto } from './dto/create-reaction.dto';
 import { UpdateReactionDto } from './dto/update-reaction.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { SocialAuthGuard } from 'src/common/guards/auth.guard';
-import { PaginationDto } from 'src/utils/pagination/pagination.dto';
+import { SocialAuthGuard } from '../../common/guards/auth.guard';
+import { PaginationDto } from '../../utils/pagination/pagination.dto';
 @ApiTags('Reactions')
 @ApiBearerAuth()
 @UseGuards(SocialAuthGuard)

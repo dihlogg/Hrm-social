@@ -1,8 +1,8 @@
-import { BaseEntities } from 'src/common/entities/base.entity';
-import { Mention } from 'src/modules/mentions/entities/mention.entity';
-import { Post } from 'src/modules/posts/entities/post.entity';
-import { ReactionCount } from 'src/modules/reaction-count/entities/reaction-count.entity';
-import { Reaction } from 'src/modules/reactions/entities/reaction.entity';
+import { BaseEntities } from '../../../common/entities/base.entity';
+import { Mention } from '../../mentions/entities/mention.entity';
+import { Post } from '../../posts/entities/post.entity';
+import { ReactionCount } from '../../reaction-count/entities/reaction-count.entity';
+import { Reaction } from '../../reactions/entities/reaction.entity';
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 
 @Entity('PostComments')

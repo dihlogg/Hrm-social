@@ -8,11 +8,10 @@ import { UpdateReactionDto } from './dto/update-reaction.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Reaction } from './entities/reaction.entity';
 import { Repository } from 'typeorm';
-import { ProducerService } from 'src/kafka/producers/producer.service';
-import { KAFKA_TOPICS } from 'src/kafka/config/kafka-topics.constant';
-import { PaginationDto } from 'src/utils/pagination/pagination.dto';
-import { paginateAndFormat } from 'src/utils/pagination/pagination.util';
-import e from 'express';
+import { ProducerService } from '../../kafka/producers/producer.service';
+import { KAFKA_TOPICS } from '../../kafka/config/kafka-topics.constant';
+import { PaginationDto } from '../../utils/pagination/pagination.dto';
+import { paginateAndFormat } from '../../utils/pagination/pagination.util';
 
 @Injectable()
 export class ReactionsService {

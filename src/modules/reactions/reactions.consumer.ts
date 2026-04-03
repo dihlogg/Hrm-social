@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { Kafka, Consumer } from 'kafkajs';
 import { ConfigService } from '@nestjs/config';
-import { KAFKA_TOPICS } from 'src/kafka/config/kafka-topics.constant';
+import { KAFKA_TOPICS } from '../../kafka/config/kafka-topics.constant';
 import { ReactionEvent } from './interfaces/reaction.event.interface';
 import {
   NormalizedAction,

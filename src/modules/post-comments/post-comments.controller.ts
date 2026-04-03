@@ -14,8 +14,8 @@ import { PostCommentsService } from './post-comments.service';
 import { CreatePostCommentDto } from './dto/create-post-comment.dto';
 import { UpdatePostCommentDto } from './dto/update-post-comment.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { SocialAuthGuard } from 'src/common/guards/auth.guard';
-import { PaginationDto } from 'src/utils/pagination/pagination.dto';
+import { SocialAuthGuard } from '../../common/guards/auth.guard';
+import { PaginationDto } from '../../utils/pagination/pagination.dto';
 @ApiTags('Comments')
 @ApiBearerAuth()
 @UseGuards(SocialAuthGuard)

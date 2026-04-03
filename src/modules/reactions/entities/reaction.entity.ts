@@ -1,6 +1,6 @@
-import { BaseEntities } from 'src/common/entities/base.entity';
-import { PostComment } from 'src/modules/post-comments/entities/post-comment.entity';
-import { Post } from 'src/modules/posts/entities/post.entity';
+import { BaseEntities } from '../../../common/entities/base.entity';
+import { PostComment } from '../../post-comments/entities/post-comment.entity';
+import { Post } from '../../posts/entities/post.entity';
 import { Column, Entity, JoinColumn, ManyToOne, Unique } from 'typeorm';
 
 @Entity('Reactions')

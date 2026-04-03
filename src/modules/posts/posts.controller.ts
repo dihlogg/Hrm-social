@@ -14,9 +14,9 @@ import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { SocialAuthGuard } from 'src/common/guards/auth.guard';
-import { PaginationDto } from 'src/utils/pagination/pagination.dto';
-import { CursorPaginationDto } from 'src/utils/pagination/cursor-pagination.dto';
+import { SocialAuthGuard } from '../../common/guards/auth.guard';
+import { PaginationDto } from '../../utils/pagination/pagination.dto';
+import { CursorPaginationDto } from '../../utils/pagination/cursor-pagination.dto';
 @ApiTags('Posts')
 @ApiBearerAuth()
 @UseGuards(SocialAuthGuard)
